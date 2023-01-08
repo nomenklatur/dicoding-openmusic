@@ -8,7 +8,7 @@ class SongsService {
   }
 
   async addSong({
-    title, year, genre, performer, duration = null, albumId = null,
+    title, year, genre, performer, duration, albumId,
   }) {
     const id = `song-${nanoid(16)}`;
     const query = {
@@ -20,11 +20,6 @@ class SongsService {
       throw console.error();
     }
     return result.rows[0].id;
-  }
-
-  async getSongs() {
-    const result = await this._pool.query('select * from songs');
-    return result.rows.map(mapDBToModel);
   }
 
   async getSongById(id) {
@@ -40,42 +35,28 @@ class SongsService {
     return result.rows.map(mapDBToModel)[0];
   }
 
-  async getSongsByQuery({ title = null, performer = null }) {
-    if (title === null) {
+  async getSongs({ title, performer }) {
+    if (title === performer) {
       const query = {
-        text: 'select * from songs where performer = $1',
-        values: [performer],
-      };
-      const result = await this._pool.query(query);
-      if (!result.rows[0]) {
-        throw new Error();
-      }
-      return result.rows.map(mapDBToModel);
-    } if (performer === null) {
-      const query = {
-        text: 'select * from songs where title = $1',
-        values: [title],
+        text: `select id, title, performer from songs ${title ? 'where title = $1 and performer = $2' : ''}`,
+        values: title ? [title, performer] : null,
       };
       const result = await this._pool.query(query);
       if (!result.rows.length) {
         throw new Error();
       }
-      return result.rows.map(mapDBToModel);
+      return result.rows;
     }
-
     const query = {
-      text: 'select * from songs where title = $1 and performer = $2',
-      values: [title, performer],
+      text: `select id, title, performer from songs where ${title ? 'title = $1' : 'performer = $2'}`,
+      values: [title || performer],
     };
     const result = await this._pool.query(query);
-    if (!result.rows) {
-      throw new Error();
-    }
-    return result.rows.map(mapDBToModel);
+    return result.rows;
   }
 
   async editSongById(id, {
-    title, year, genre, performer, duration = null, albumId = null,
+    title, year, genre, performer, duration, albumId,
   }) {
     const query = {
       text: 'update songs set title = $1, year = $2, genre = $3, performer = $4, duration = $5, album_id = $6 where id = $7 returning id',
