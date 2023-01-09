@@ -69,6 +69,42 @@ class SongsHandler {
       return response;
     }
   }
+
+  putSongByIdHandler(request, h) {
+    try {
+      const { id } = request.params;
+      this._service.editSongById(id);
+      return {
+        status: 'success',
+        message: 'Musik berhasil diperbarui',
+      };
+    } catch (error) {
+      const response = h.response({
+        status: 'fail',
+        message: error.message,
+      });
+      response.code(404);
+      return response;
+    }
+  }
+
+  deleteSongByIdHandler(request, h) {
+    try {
+      const { id } = request.params;
+      this._service.deleteSongById(id);
+      return {
+        status: 'success',
+        message: 'Lagu berhasil dihapus',
+      };
+    } catch (error) {
+      const response = h.response({
+        status: 'fail',
+        message: error.message,
+      });
+      response.code(404);
+      return response;
+    }
+  }
 }
 
 module.exports = SongsHandler;
