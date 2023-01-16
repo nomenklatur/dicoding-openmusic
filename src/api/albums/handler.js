@@ -1,10 +1,16 @@
 class AlbumsHandler {
-  constructor(service) {
+  constructor(service, validator) {
     this._service = service;
+    this._validator = validator;
+    this.postAlbumHandler = this.postAlbumHandler.bind(this);
+    this.getAlbumByIdHandler = this.getAlbumByIdHandler.bind(this);
+    this.putAlbumByIdHandller = this.putAlbumByIdHandller.bind(this);
+    this.deleteAlbumByIdHandler = this.deleteAlbumByIdHandler.bind(this);
   }
 
   postAlbumHandler(request, h) {
     try {
+      this._validator.validateAlbumPayload(request.payload);
       const { name, year } = request.payload;
       const albumId = this._service.addAlbum({ name, year });
       const response = h.response({
@@ -48,8 +54,9 @@ class AlbumsHandler {
 
   putAlbumByIdHandller(request, h) {
     try {
+      this._service.validateAlbumPayload(request.payload);
       const { id } = request.params;
-      this._service.editAlbumById(id);
+      this._service.editAlbumById(id, request.payload);
       return {
         status: 'success',
         message: 'Album berhasil diperbarui',
